@@ -3,7 +3,7 @@ import { Video, Play } from 'lucide-react';
 import { ConverterSlot, ConverterSlotRef } from '@/components/ConverterSlot';
 
 const Index = () => {
-  const slotRefs = useRef<(ConverterSlotRef | null)[]>([null, null, null, null]);
+  const slotRefs = useRef<(ConverterSlotRef | null)[]>([null, null, null, null, null, null, null, null]);
 
   const handleStartAll = () => {
     slotRefs.current.forEach(ref => {
@@ -27,7 +27,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-foreground">Video Converter</h1>
-                <p className="text-sm text-muted-foreground">Image + Audio → Video (4 Slots)</p>
+                <p className="text-sm text-muted-foreground">Image + Audio → Video (8 Slots)</p>
               </div>
             </div>
             <button
@@ -49,6 +49,10 @@ const Index = () => {
           <ConverterSlot ref={el => slotRefs.current[1] = el} slotNumber={2} />
           <ConverterSlot ref={el => slotRefs.current[2] = el} slotNumber={3} />
           <ConverterSlot ref={el => slotRefs.current[3] = el} slotNumber={4} />
+          <ConverterSlot ref={el => slotRefs.current[4] = el} slotNumber={5} />
+          <ConverterSlot ref={el => slotRefs.current[5] = el} slotNumber={6} />
+          <ConverterSlot ref={el => slotRefs.current[6] = el} slotNumber={7} />
+          <ConverterSlot ref={el => slotRefs.current[7] = el} slotNumber={8} />
         </div>
 
         {/* Info Section */}
