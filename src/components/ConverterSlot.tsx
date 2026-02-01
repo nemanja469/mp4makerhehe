@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react';
 import { FileUpload } from '@/components/FileUpload';
 import { ProgressDisplay } from '@/components/ProgressDisplay';
 import { useVideoConverter } from '@/hooks/useVideoConverter';
+import { compressImage } from '@/lib/imageCompressor';
 
 interface ConverterSlotProps {
   slotNumber: number;
@@ -19,20 +20,43 @@ export const ConverterSlot = forwardRef<ConverterSlotRef, ConverterSlotProps>(({
   const [imagePreview, setImagePreview] = useState<string>('');
   const [audioDuration, setAudioDuration] = useState<number>(0);
   const [audioDurationText, setAudioDurationText] = useState<string>('');
+  const [isCompressing, setIsCompressing] = useState(false);
+
+  const handleImageSelect = async (file: File | null) => {
+    if (!file) {
+      setImageFile(null);
+      return;
+    }
+    
+    setIsCompressing(true);
+    try {
+      const compressed = await compressImage(file, {
+        maxWidth: 1280,
+        maxHeight: 720,
+        quality: 0.85,
+      });
+      setImageFile(compressed);
+    } catch (error) {
+      console.error('Compression failed, using original:', error);
+      setImageFile(file);
+    } finally {
+      setIsCompressing(false);
+    }
+  };
 
   const converter = useVideoConverter();
 
-  const canStartCheck = !!(imageFile && audioFile && !converter.isProcessing);
+  const canStartCheck = !!(imageFile && audioFile && !converter.isProcessing && !isCompressing);
   const showProgress = converter.isProcessing || converter.isComplete || converter.isError;
 
   useImperativeHandle(ref, () => ({
-    canStart: () => !!(imageFile && audioFile && !converter.isProcessing),
+    canStart: () => !!(imageFile && audioFile && !converter.isProcessing && !isCompressing),
     start: () => {
-      if (imageFile && audioFile && !converter.isProcessing) {
+      if (imageFile && audioFile && !converter.isProcessing && !isCompressing) {
         converter.convert(imageFile, audioFile, audioDuration, slotNumber);
       }
     },
-  }), [imageFile, audioFile, audioDuration, slotNumber, converter]);
+  }), [imageFile, audioFile, audioDuration, slotNumber, converter, isCompressing]);
 
   useEffect(() => {
     if (imageFile) {
@@ -90,10 +114,11 @@ export const ConverterSlot = forwardRef<ConverterSlotRef, ConverterSlotProps>(({
         <FileUpload
           type="image"
           accept="image/jpeg,image/jpg,image/png,image/webp"
-          onFileSelect={setImageFile}
+          onFileSelect={handleImageSelect}
           file={imageFile}
-          disabled={converter.isProcessing}
+          disabled={converter.isProcessing || isCompressing}
           previewUrl={imagePreview}
+          isCompressing={isCompressing}
         />
 
         <FileUpload
@@ -101,7 +126,7 @@ export const ConverterSlot = forwardRef<ConverterSlotRef, ConverterSlotProps>(({
           accept="audio/mpeg,audio/mp3,audio/wav"
           onFileSelect={setAudioFile}
           file={audioFile}
-          disabled={converter.isProcessing}
+          disabled={converter.isProcessing || isCompressing}
           audioDuration={audioDurationText}
         />
       </div>
