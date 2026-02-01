@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { Sparkles } from 'lucide-react';
 import { FileUpload } from '@/components/FileUpload';
 import { ProgressDisplay } from '@/components/ProgressDisplay';
@@ -8,7 +8,12 @@ interface ConverterSlotProps {
   slotNumber: number;
 }
 
-export function ConverterSlot({ slotNumber }: ConverterSlotProps) {
+export interface ConverterSlotRef {
+  canStart: () => boolean;
+  start: () => void;
+}
+
+export const ConverterSlot = forwardRef<ConverterSlotRef, ConverterSlotProps>(({ slotNumber }, ref) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -17,8 +22,17 @@ export function ConverterSlot({ slotNumber }: ConverterSlotProps) {
 
   const converter = useVideoConverter();
 
-  const canStart = imageFile && audioFile && !converter.isProcessing;
+  const canStartCheck = !!(imageFile && audioFile && !converter.isProcessing);
   const showProgress = converter.isProcessing || converter.isComplete || converter.isError;
+
+  useImperativeHandle(ref, () => ({
+    canStart: () => !!(imageFile && audioFile && !converter.isProcessing),
+    start: () => {
+      if (imageFile && audioFile && !converter.isProcessing) {
+        converter.convert(imageFile, audioFile, audioDuration, slotNumber);
+      }
+    },
+  }), [imageFile, audioFile, audioDuration, slotNumber, converter]);
 
   useEffect(() => {
     if (imageFile) {
@@ -117,7 +131,7 @@ export function ConverterSlot({ slotNumber }: ConverterSlotProps) {
         ) : (
           <button
             onClick={handleStart}
-            disabled={!canStart}
+            disabled={!canStartCheck}
             className="btn-primary w-full flex items-center justify-center gap-2 text-sm py-2"
           >
             {converter.isProcessing ? (
@@ -133,4 +147,4 @@ export function ConverterSlot({ slotNumber }: ConverterSlotProps) {
       </div>
     </div>
   );
-}
+});
