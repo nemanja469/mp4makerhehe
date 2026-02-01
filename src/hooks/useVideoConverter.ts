@@ -79,7 +79,7 @@ export function useVideoConverter() {
     return ffmpeg;
   };
 
-  const convert = useCallback(async (imageFile: File, audioFile: File, audioDuration: number) => {
+  const convert = useCallback(async (imageFile: File, audioFile: File, audioDuration: number, slotNumber?: number) => {
     abortRef.current = false;
 
     setState({
@@ -136,10 +136,11 @@ export function useVideoConverter() {
       const uint8Array = data instanceof Uint8Array ? data : new TextEncoder().encode(data);
       const blob = new Blob([new Uint8Array(uint8Array)], { type: 'video/mp4' });
 
-      // Generate output filename
+      // Generate output filename with slot prefix if provided
       const imageName = imageFile.name.replace(/\.[^/.]+$/, '');
       const audioName = audioFile.name.replace(/\.[^/.]+$/, '');
-      const outputFileName = `${imageName}_${audioName}.mp4`;
+      const slotPrefix = slotNumber ? `slot${slotNumber}_` : '';
+      const outputFileName = `${slotPrefix}${imageName}_${audioName}.mp4`;
 
       // Trigger download
       const url = URL.createObjectURL(blob);
