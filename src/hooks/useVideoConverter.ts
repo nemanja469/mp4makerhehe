@@ -114,14 +114,17 @@ export function useVideoConverter() {
       setState(prev => ({ ...prev, progress: 20, status: 'Rendering video...' }));
 
       // Create video from image + audio
+      // Optimized for speed: ultrafast preset, capped resolution, lower bitrate
       await ffmpeg.exec([
         '-loop', '1',
         '-i', `input.${imageExt}`,
         '-i', `input.${audioExt}`,
         '-c:v', 'libx264',
+        '-preset', 'ultrafast',
         '-tune', 'stillimage',
+        '-vf', 'scale=min(iw\\,1920):min(ih\\,1080):force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2',
         '-c:a', 'aac',
-        '-b:a', '192k',
+        '-b:a', '128k',
         '-pix_fmt', 'yuv420p',
         '-shortest',
         '-movflags', '+faststart',
