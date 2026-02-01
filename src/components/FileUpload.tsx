@@ -9,6 +9,7 @@ interface FileUploadProps {
   disabled?: boolean;
   previewUrl?: string;
   audioDuration?: string;
+  isCompressing?: boolean;
 }
 
 export function FileUpload({
@@ -19,6 +20,7 @@ export function FileUpload({
   disabled = false,
   previewUrl,
   audioDuration,
+  isCompressing = false,
 }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -148,6 +150,20 @@ export function FileUpload({
                 <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
               </button>
             )}
+          </div>
+        ) : isCompressing ? (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
+              <Image className="w-6 h-6 text-primary" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-foreground">
+                Compressing image...
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Optimizing for faster conversion
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 py-4">
